@@ -8,7 +8,7 @@ import java.util.Base64
 
 class SpeechServicePlugin : KigPlugin {
     override val descriptor = PluginDescriptor("service.speech-synthesis", "语音合成服务",
-        "选择朗读声音，管理语音包", version = "0.8.2", license = "GPL-3.0-only")
+        "选择朗读声音，管理语音包", version = "0.8.3", license = "GPL-3.0-only")
     private lateinit var environment: AndroidPluginEnvironment
     private lateinit var settings: ServiceSettings
     private lateinit var broker: SpeechBroker
@@ -70,6 +70,11 @@ class SpeechServicePlugin : KigPlugin {
         val id = pieces.getOrNull(1)?.takeIf { pieces[0] != "sounds" }?.let(::decode)
         val voice = pieces.getOrNull(2)?.takeIf { pieces[0] !in setOf("engine") }?.let(::decode)
         return when (pieces[0]) {
+            "settings" -> {
+                val provider = providers().first { it.pluginId == id && it.enabled }
+                require(provider.settingsPages.any { it.id == voice })
+                PluginOutcome.OpenPluginPage(requireNotNull(id), requireNotNull(voice))
+            }
             "resident" -> { settings.resident = context.inputs["checked"]?.toBooleanStrictOrNull() ?: !settings.resident; settings.save(); facade.settingsChanged(); PluginOutcome.RefreshUi }
             "activate" -> PluginOutcome.SelectTtsService(descriptor.id)
             "sounds" -> PluginOutcome.OpenPage("packs")

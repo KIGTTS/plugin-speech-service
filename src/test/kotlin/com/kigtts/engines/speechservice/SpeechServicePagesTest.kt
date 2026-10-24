@@ -61,4 +61,12 @@ class SpeechServicePagesTest {
         assertEquals("", languageName("und"))
         PluginSnapshot(PluginDescriptor("test.service", "服务", "test"), PluginContributions(), listOf(page))
     }
+    @Test fun configurableEnginesGetDedicatedServiceEntriesAndDisabledEnginesStayHidden() {
+        val engine = TtsProvider("test.cloud", "云端语音", TtsInfo(), settingsPages = listOf(AsrSettingsPage("accounts", "账户")))
+        val pages = SpeechServicePages(settings()) { listOf(system, engine) }
+        val group = pages.page("manager", true)!!.blocks.filterIsInstance<PageBlock.Group>().single { it.title == "引擎设置" }
+        assertEquals("settings/${encodeId(engine.pluginId)}/${encodeId("accounts")}", group.children.filterIsInstance<PageBlock.Actions>().single().actions.single().id)
+        val disabled = SpeechServicePages(settings()) { listOf(system, engine.copy(enabled = false)) }
+        assertFalse(disabled.page("manager", true)!!.blocks.filterIsInstance<PageBlock.Group>().any { it.title == "引擎设置" })
+    }
 }

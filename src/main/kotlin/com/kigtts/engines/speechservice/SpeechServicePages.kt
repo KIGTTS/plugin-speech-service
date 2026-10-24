@@ -22,6 +22,11 @@ internal class SpeechServicePages(private val settings: ServiceSettings, private
                     val controls = packSettingsControls(PackEntry(requireNotNull(source), pack)).controls.filterIsInstance<PluginControl.Slider>()
                     add(PageBlock.Group(pack.metadata.name, controls.map { PageBlock.Slider(it) }))
                 }
+                val entries = catalog.filter { it.enabled }.flatMap { provider -> provider.settingsPages.map { page ->
+                    PageAction("settings/${encodeId(provider.pluginId)}/${encodeId(page.id)}",
+                        if (provider.settingsPages.size == 1) provider.name else "${provider.name} · ${page.title}", page.icon)
+                } }
+                if (entries.isNotEmpty()) add(PageBlock.Group("引擎设置", listOf(PageBlock.Actions(entries))))
                 add(PageBlock.Group("加载方式", listOf(PageBlock.Toggle("保持加载", settings.resident, "resident", "减少下次朗读等待"))))
             })
         }

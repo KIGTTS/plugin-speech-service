@@ -34,7 +34,7 @@ internal class VoiceLibraryPages(private val settings: ServiceSettings, private 
                         selected = if (entry.provider.pluginId == SYSTEM_PROVIDER) settings.provider == null
                             else settings.provider == entry.provider.pluginId && settings.voice in pack.voiceIds,
                         pinned = pinned, group = if (pinned) "pinned" else "normal", primaryAction = if (entry.provider.enabled) packAction("pack-use", entry) else packAction("pack", entry), actions = actions,
-                        badges = listOf(if (entry.provider.pluginId == SYSTEM_PROVIDER) "系统" else entry.provider.name.take(32)),
+                        badges = listOf(if (entry.provider.pluginId == SYSTEM_PROVIDER) "系统" else pack.providerLabel.ifBlank { entry.provider.name.take(32) }),
                         selection = ManagementSelection(packAction("pack-use", entry), entry.provider.enabled))
                 }, "pack-order", "此引擎还没有语音包", filters))
         }
