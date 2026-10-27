@@ -1,8 +1,8 @@
 {
   "id": "service.speech-synthesis",
   "name": "语音合成服务",
-  "version": "0.8.3",
-  "versionCode": 14,
+  "version": "0.8.4",
+  "versionCode": 15,
   "entryClass": "com.kigtts.engines.speechservice.SpeechServicePlugin",
   "apiVersion": 28,
   "minSdk": 26,

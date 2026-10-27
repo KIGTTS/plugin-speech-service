@@ -95,8 +95,15 @@ class SpeechServicePluginTest {
         service.execute(rate.actionId, PluginContext("", "", inputs = mapOf("value" to "1.5")))
         assertEquals(1.5f, ServiceSettings(environment.storage).rate)
         val packPage = service.page("pack/${encoded("test.provider")}/${encoded("pack")}", PluginContext("", ""))!!
-        val controls = service.execute(packPage.management!!.items.single().actions.single().id, PluginContext("", "")) as PluginOutcome.Controls
-        assertEquals(slider.actionId, controls.controls.single().actionId)
+        val audio = packPage.blocks.filterIsInstance<PageBlock.Group>().single { it.title == "音频设置" }
+        val inline = audio.children.filterIsInstance<PageBlock.Slider>().single().control
+        assertEquals(slider.value, inline.value)
+        assertTrue(service.execute(inline.actionId, PluginContext("", "", inputs = mapOf("value" to "0.8"))) is PluginOutcome.RefreshUi)
+        assertEquals(.8, org.json.JSONObject(broker.commands.last().value!!).getDouble("noise_scale"), .001)
+        val reset = audio.children.filterIsInstance<PageBlock.Actions>().single().actions.single()
+        assertTrue(service.execute(reset.id, PluginContext("", "")) is PluginOutcome.RefreshUi)
+        assertEquals(spec.defaultValue.toDouble(), org.json.JSONObject(broker.commands.last().value!!).getDouble("noise_scale"), .001)
+        assertTrue(packPage.management!!.items.single().actions.isEmpty())
         service.tts.close()
     }
 }

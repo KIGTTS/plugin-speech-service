@@ -40,4 +40,28 @@ class VoiceLibraryTest {
         library.pin(entries[2].key, true)
         assertEquals(entries[2].key, VoiceLibrary(storage).ordered(entries).first().key)
     }
+    @Test fun detailsUseIdentityHeaderAndNestedSettingsWithNoTopLevelActionTabs() {
+        val storage = PluginStorage(files.newFolder()); val library = VoiceLibrary(storage); val settings = ServiceSettings(storage)
+        val source = provider("example.engine").let { item -> item.copy(info = item.info.copy(packs = item.info.packs.map {
+            it.copy(avatarPath = "resources/avatar.png", parameters = listOf(VoiceParameter("speed", "语速", 1f, .5f, 2f, 1f)))
+        })) }
+        val pages = VoiceLibraryPages(settings, library) { listOf(source) }
+        val page = pages.page("pack/${encodeId(source.pluginId)}/${encodeId("pack")}")!!
+        assertEquals(source.pluginId, page.header!!.image!!.pluginId)
+        assertFalse(page.blocks.any { it is PageBlock.Actions || it is PageBlock.Choice })
+        val groups = page.blocks.filterIsInstance<PageBlock.Group>().associateBy { it.title }
+        assertTrue(groups.keys.containsAll(listOf("详细信息", "语音包设置", "音频设置", "管理")))
+        assertEquals(1, groups.getValue("音频设置").children.filterIsInstance<PageBlock.Slider>().size)
+        assertEquals(listOf("名称", "备注"), groups.getValue("语音包设置").children.filterIsInstance<PageBlock.Input>().map { it.title })
+        assertTrue(page.management!!.items.all { it.group == "声音" && it.actions.isEmpty() && it.selection!!.enabled })
+    }
+    @Test fun disabledEngineStillShowsPackIdentityAndInformationWithoutEditableControls() {
+        val storage = PluginStorage(files.newFolder())
+        val pages = VoiceLibraryPages(ServiceSettings(storage), VoiceLibrary(storage)) { listOf(provider("disabled.engine", false)) }
+        val page = pages.page("pack/${encodeId("disabled.engine")}/${encodeId("pack")}")!!
+        assertNotNull(page.header)
+        assertTrue(page.blocks.filterIsInstance<PageBlock.Group>().any { it.title == "详细信息" })
+        assertFalse(page.blocks.filterIsInstance<PageBlock.Group>().any { it.title == "语音包设置" })
+        assertTrue(page.management!!.items.all { it.primaryAction == null && !it.selection!!.enabled })
+    }
 }

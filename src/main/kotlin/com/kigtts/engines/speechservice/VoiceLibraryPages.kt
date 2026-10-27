@@ -42,23 +42,6 @@ internal class VoiceLibraryPages(private val settings: ServiceSettings, private 
         val parts = id.split('/'); val owner = decodeId(parts[1]); val key = decodeId(parts[2])
         val entry = entries().firstOrNull { it.provider.pluginId == owner && it.pack.id == key }
             ?: return PluginPage(id, "语音包不可用", listOf(PageBlock.Notice("该语音包或引擎已移除。")))
-        val pack = entry.pack
-        if (!entry.provider.enabled) return PluginPage(id, pack.metadata.name, listOf(PageBlock.Notice("引擎已停用。启用后可使用、编辑和导出语音包。"), PageBlock.Text(pack.metadata.remark)))
-        val actions = mutableListOf(PageAction(packAction("pack-use", entry), "使用语音包", PluginIcon.SPEAKER))
-        if (pack.parameters.isNotEmpty()) actions += PageAction(packAction("pack-settings", entry), "音频设置", PluginIcon.SETTINGS)
-        if (pack.editable) actions += listOf(PageAction(packAction("pack-name", entry), "修改名称", PluginIcon.EDIT),
-            PageAction(packAction("pack-remark", entry), "修改备注", PluginIcon.TEXT), PageAction(packAction("pack-avatar", entry), "更换头像", PluginIcon.IMAGE))
-        if (entry.provider.info.importsVoicePacks) actions += PageAction(packAction("pack-update", entry), "更新语音包", PluginIcon.ADD)
-        if (pack.exportable) actions += PageAction(packAction("pack-export", entry), "导出语音包", PluginIcon.EXPORT)
-        if (pack.deletable) actions += PageAction(packAction("pack-delete", entry), "删除语音包", PluginIcon.CLOSE)
-        val voices = entry.provider.info.voices.filter { it.id in pack.voiceIds }.distinctBy { it.id }.map { voice ->
-            ManagementItem(voice.id, voice.name, voice.language, PluginIcon.SPEAKER,
-                selected = settings.provider == owner && settings.voice == voice.id,
-                primaryAction = "voice/${encodeId(owner)}/${encodeId(voice.id)}",
-                selection = ManagementSelection("voice/${encodeId(owner)}/${encodeId(voice.id)}"),
-                actions = if (pack.parameters.isEmpty()) emptyList() else listOf(PageAction(packAction("pack-settings", entry), "音频设置", PluginIcon.SETTINGS)))
-        }
-        return PluginPage(id, pack.metadata.name, (if (pack.metadata.remark.isBlank()) emptyList() else listOf(PageBlock.Text(pack.metadata.remark))) +
-            PageBlock.Actions(actions), if (owner == SYSTEM_PROVIDER) null else ManagementList("pack-voices", voices))
+        return voicePackDetails(id, entry, settings, library)
     }
 }

@@ -22,15 +22,16 @@ internal class VoiceLibraryActions(private val environment: PluginEnvironment, p
             broker.command(owner, VoiceCommand(operation, packId = id, metadata = metadata, voiceId = entry.pack.voiceIds.firstOrNull()))
         return when (parts[0]) {
             "pack-settings" -> packSettingsControls(entry)
-            "pack-setting" -> {
+            "pack-setting", "pack-setting-inline" -> {
                 updatePackSetting(entry, decodeId(parts[3]), context.inputs["value"], broker)
-                PluginOutcome.NoAction
+                if (parts[0] == "pack-setting-inline") PluginOutcome.RefreshUi else PluginOutcome.NoAction
             }
-            "pack-settings-reset" -> {
+            "pack-settings-reset", "pack-settings-inline-reset" -> {
                 val values = org.json.JSONObject()
                 entry.pack.parameters.forEach { values.put(it.id, it.defaultValue) }
                 broker.command(owner, VoiceCommand(VoiceOperation.UPDATE_PARAMETERS, packId = id, value = values.toString()))
-                packSettingsControls(pages.entries().first { it.key == entry.key })
+                if (parts[0] == "pack-settings-inline-reset") PluginOutcome.RefreshUi
+                else packSettingsControls(pages.entries().first { it.key == entry.key })
             }
             "pack" -> PluginOutcome.OpenPage(action)
             "pack-use" -> {
