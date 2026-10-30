@@ -1,8 +1,8 @@
 {
   "id": "service.speech-synthesis",
   "name": "语音合成服务",
-  "version": "0.8.4",
-  "versionCode": 15,
+  "version": "0.8.5",
+  "versionCode": 16,
   "entryClass": "com.kigtts.engines.speechservice.SpeechServicePlugin",
   "apiVersion": 28,
   "minSdk": 26,
@@ -12,5 +12,9 @@
     "tts",
     "ui",
     "speech-service"
-  ]
+  ],
+  "permissionPurposes": {
+    "tts": "把你选择的文字合成为语音，供朗读和试听。",
+    "speech-service": "调用你选择的语音引擎，获取声音列表并合成朗读音频。"
+  }
 }
